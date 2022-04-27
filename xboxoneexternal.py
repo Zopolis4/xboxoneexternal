@@ -4,18 +4,18 @@ import argparse
 
 
 SECTOR_SIZE = 0x200
-XBOX_ONE_NT_DISK_SIGNATURE = '12345678'.decode('hex')
-XBOX_ONE_BOOT_SIGNATURE = '99cc'.decode('hex')
-PC_BOOT_SIGNATURE = '55aa'.decode('hex')
+XBOX_ONE_NT_DISK_SIGNATURE = bytes.fromhex('12345678')
+XBOX_ONE_BOOT_SIGNATURE = bytes.fromhex('99cc')
+PC_BOOT_SIGNATURE = bytes.fromhex('55aa')
 
 
 def update_boot_signature(sector, signature):
-    print('NEW Boot Signature: \t0x{0}'.format(signature.encode('hex')))
+    print('NEW Boot Signature: \t0x' + signature.hex())
     return sector[:-2] + signature
 
 
 def update_nt_disk_signature(sector, signature):
-    print('NEW NT Disk Signature: \t0x{0}'.format(signature.encode('hex')))
+    print('NEW NT Disk Signature: \t0x{0}'+ signature.hex())
     return sector[:0x1b8] + signature + sector[0x1bc:]
 
 
@@ -38,9 +38,8 @@ def main():
             nt_disk_signature = master_boot_record[0x1b8:0x1bc]
             boot_signature = master_boot_record[0x1fe:0x200]
 
-            print()
-            print('NT Disk Signature: \t0x{0}'.format(nt_disk_signature.encode('hex')))
-            print('Boot Signature: \t0x{0}'.format(boot_signature.encode('hex')))
+            print('NT Disk Signature: \t0x' + nt_disk_signature.hex())
+            print('Boot Signature: \t0x' + boot_signature.hex())
 
             if nt_disk_signature == XBOX_ONE_NT_DISK_SIGNATURE or args.ignore == True:
                 if boot_signature == XBOX_ONE_BOOT_SIGNATURE:
@@ -61,7 +60,6 @@ def main():
                     changes = True
 
                 if changes:
-                    print()
                     print('Writing new MBR ...', end=' ')
                     disk.seek(0)
                     disk.write(master_boot_record)

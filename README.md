@@ -9,7 +9,7 @@
 
 1. Xbox One.
 2. External Hard drive greater than 256GB.
-3. Python 2.7.
+3. Python 3.x
 4. Administrator rights.
 
 ## Instructions
