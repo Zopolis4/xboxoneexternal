@@ -10,12 +10,12 @@ PC_BOOT_SIGNATURE = '55aa'.decode('hex')
 
 
 def update_boot_signature(sector, signature):
-    print 'NEW Boot Signature: \t0x{0}'.format(signature.encode('hex'))
+    print('NEW Boot Signature: \t0x{0}'.format(signature.encode('hex')))
     return sector[:-2] + signature
 
 
 def update_nt_disk_signature(sector, signature):
-    print 'NEW NT Disk Signature: \t0x{0}'.format(signature.encode('hex'))
+    print('NEW NT Disk Signature: \t0x{0}'.format(signature.encode('hex')))
     return sector[:0x1b8] + signature + sector[0x1bc:]
 
 
@@ -38,19 +38,19 @@ def main():
             nt_disk_signature = master_boot_record[0x1b8:0x1bc]
             boot_signature = master_boot_record[0x1fe:0x200]
 
-            print
-            print 'NT Disk Signature: \t0x{0}'.format(nt_disk_signature.encode('hex'))
-            print 'Boot Signature: \t0x{0}'.format(boot_signature.encode('hex'))
+            print()
+            print('NT Disk Signature: \t0x{0}'.format(nt_disk_signature.encode('hex')))
+            print('Boot Signature: \t0x{0}'.format(boot_signature.encode('hex')))
 
             if nt_disk_signature == XBOX_ONE_NT_DISK_SIGNATURE or args.ignore == True:
                 if boot_signature == XBOX_ONE_BOOT_SIGNATURE:
                     if args.bootsignature:
-                        print 'Operation: \t\tXbox One->PC'
+                        print('Operation: \t\tXbox One->PC')
                         master_boot_record = update_boot_signature(master_boot_record, PC_BOOT_SIGNATURE)
                         changes = True
                 elif boot_signature == PC_BOOT_SIGNATURE:
                     if args.bootsignature:
-                        print 'Operation: \t\tPC->Xbox One'
+                        print('Operation: \t\tPC->Xbox One')
                         master_boot_record = update_boot_signature(master_boot_record, XBOX_ONE_BOOT_SIGNATURE)
                         changes = True
                 else:
@@ -61,11 +61,11 @@ def main():
                     changes = True
 
                 if changes:
-                    print
-                    print 'Writing new MBR ...',
+                    print()
+                    print('Writing new MBR ...', end=' ')
                     disk.seek(0)
                     disk.write(master_boot_record)
-                    print 'done.'
+                    print('done.')
             else:
                 raise Exception('Error: Unexpected NT Disk Signature.')
 
