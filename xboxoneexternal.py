@@ -22,11 +22,10 @@ def main():
     parser.add_argument('-ds', '--disksignature', action='store_true', help="Update 'NT Disk Signature'")
     args = parser.parse_args()
 
-    changes = False
-
     with open(args.drive, 'r+b') as disk:
         disk.seek(0)
         master_boot_record = disk.read(SECTOR_SIZE)
+        mbr_backup = disk.read(SECTOR_SIZE)
 
         nt_disk_signature = master_boot_record[0x1b8:0x1bc]
         boot_signature = master_boot_record[0x1fe:0x200]
@@ -39,24 +38,27 @@ def main():
                 if args.bootsignature:
                     print('Operation: \t\tXbox One->PC')
                     master_boot_record = update_boot_signature(master_boot_record, PC_BOOT_SIGNATURE)
-                    changes = True
             elif boot_signature == PC_BOOT_SIGNATURE:
                 if args.bootsignature:
                     print('Operation: \t\tPC->Xbox One')
                     master_boot_record = update_boot_signature(master_boot_record, XBOX_ONE_BOOT_SIGNATURE)
-                    changes = True
             else:
                 print('Error: Unexpected Boot Signature.')
 
             if args.disksignature:
                 master_boot_record = update_nt_disk_signature(master_boot_record, XBOX_ONE_NT_DISK_SIGNATURE)
-                changes = True
 
-            if changes:
-                print('Writing new MBR ...', end=' ')
+            if master_boot_record != mbr_backup:
+                print('Writing new MBR ...')
                 disk.seek(0)
                 disk.write(master_boot_record)
-                print('done.')
+                if master_boot_record == disk.read(SECTOR_SIZE):
+                    print('Success')
+                else:
+                    print('Writing new MBR failed, attempting to revert')
+                    disk.seek(0)
+                    disk.write(mbr_backup)
+
         else:
             print('Error: Unexpected NT Disk Signature.')
 
