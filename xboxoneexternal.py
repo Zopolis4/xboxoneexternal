@@ -5,21 +5,14 @@ XBOX_ONE_NT_DISK_SIGNATURE = bytes.fromhex('12345678')
 XBOX_ONE_BOOT_SIGNATURE = bytes.fromhex('99cc')
 PC_BOOT_SIGNATURE = bytes.fromhex('55aa')
 
-def update_boot_signature(sector, signature):
-    print('NEW Boot Signature: \t0x' + signature.hex())
-    return sector[:-2] + signature
-
-def update_nt_disk_signature(sector, signature):
-    print('NEW NT Disk Signature: \t0x{0}'+ signature.hex())
-    return sector[:0x1b8] + signature + sector[0x1bc:]
-
 def main():
-    parser = argparse.ArgumentParser(description='Xbox One External HDD Tool')
-    parser.add_argument('-d', '--drive', required=True, help='The target physical drive')
-    parser.add_argument('-i', '--ignore', action='store_true',
-                        help="Ignore the 'Xbox One NT Disk Signature' sanity check")
-    parser.add_argument('-bs', '--bootsignature', action='store_true', help="Update 'Boot Signature'")
-    parser.add_argument('-ds', '--disksignature', action='store_true', help="Update 'NT Disk Signature'")
+    parser = argparse.ArgumentParser(description='Xbox One/Series External Drive Converter')
+    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument('drive', help='The target physical drive')
+    group.add_argument('--toxbox', action='store_true',
+                        help="Convert the drive from Xbox to PC")
+    group.add_argument('--topc', action='store_true',
+                        help="Convert the drive from PC to Xbox")
     args = parser.parse_args()
 
     with open(args.drive, 'r+b') as disk:
@@ -33,34 +26,41 @@ def main():
         print('NT Disk Signature: \t0x' + nt_disk_signature.hex())
         print('Boot Signature: \t0x' + boot_signature.hex())
 
-        if nt_disk_signature == XBOX_ONE_NT_DISK_SIGNATURE or args.ignore == True:
-            if boot_signature == XBOX_ONE_BOOT_SIGNATURE:
-                if args.bootsignature:
-                    print('Operation: \t\tXbox One->PC')
-                    master_boot_record = update_boot_signature(master_boot_record, PC_BOOT_SIGNATURE)
-            elif boot_signature == PC_BOOT_SIGNATURE:
-                if args.bootsignature:
-                    print('Operation: \t\tPC->Xbox One')
-                    master_boot_record = update_boot_signature(master_boot_record, XBOX_ONE_BOOT_SIGNATURE)
-            else:
-                print('Error: Unexpected Boot Signature.')
+        if args.toxbox == True:
+            XboxToPC(args.drive)
+        elif args.topc == True:
+            PCToXbox(args.drive)
 
-            if args.disksignature:
-                master_boot_record = update_nt_disk_signature(master_boot_record, XBOX_ONE_NT_DISK_SIGNATURE)
+        print('Writing new MBR ...')
+        disk.write(master_boot_record)
 
-            if master_boot_record != mbr_backup:
-                print('Writing new MBR ...')
-                disk.seek(0)
-                disk.write(master_boot_record)
-                if master_boot_record == disk.read(SECTOR_SIZE):
-                    print('Success')
-                else:
-                    print('Writing new MBR failed, attempting to revert')
-                    disk.seek(0)
-                    disk.write(mbr_backup)
-
+        if master_boot_record == disk.read(SECTOR_SIZE):
+            print('Success')
         else:
-            print('Error: Unexpected NT Disk Signature.')
+            print('Writing new MBR failed, attempting to revert')
+            disk.seek(0)
+            disk.write(mbr_backup)
+
+def XboxToPC(drive):
+   with open(drive, 'r+b') as disk:
+       disk.seek(0)
+       master_boot_record = disk.read(SECTOR_SIZE)
+       nt_disk_signature = master_boot_record[0x1b8:0x1bc]
+       boot_signature = master_boot_record[0x1fe:0x200]
+       if boot_signature == XBOX_ONE_BOOT_SIGNATURE:
+           print('Operation: Xbox One -> PC')
+           master_boot_record = (master_boot_record[:0x1b8] + PC_BOOT_SIGNATURE + master_boot_record[0x1bc:])
+
+def PCToXbox(drive):
+   with open(args.drive, 'r+b') as disk:
+       disk.seek(0)
+       master_boot_record = disk.read(SECTOR_SIZE)
+       nt_disk_signature = master_boot_record[0x1b8:0x1bc]
+       boot_signature = master_boot_record[0x1fe:0x200]
+       if boot_signature == PC_BOOT_SIGNATURE:
+           print('Operation: PC -> Xbox One')
+           master_boot_record = (master_boot_record[:0x1b8] + XBOX_ONE_BOOT_SIGNATURE + master_boot_record[0x1bc:])
+
 
 if __name__ == "__main__":
     main()
