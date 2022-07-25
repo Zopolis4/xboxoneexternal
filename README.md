@@ -27,24 +27,20 @@
 2. Run the script with the appropriate paramaters (see xboxoneexternal.py --help, or below). 
 3. Physically connect the now Xbox One configured external hard drive to a Windows PC.
 
-#### Screenshot
-
-![cmd](http://i.imgur.com/B6EdboT.png)
-
 ## Parameters
 
 ```
-usage: xboxoneexternal.py [-h] -d DRIVE [-i] [-bs] [-ds]
+usage: xboxoneexternal.py [-h] (--toxbox | --topc) drive
 
-Xbox One External HDD Tool
+Xbox One/Series External Drive Converter
 
-optional arguments:
+positional arguments:
+  drive       The target physical drive
 
--h, --help                 show this help message and exit
--d DRIVE, --drive DRIVE    The target physical drive
--i, --ignore               Ignore the 'Xbox One NT Disk Signature' sanity check
--bs, --bootsignature       Update 'Boot Signature'
--ds, --disksignature       Update 'NT Disk Signature'
+options:
+  -h, --help  show this help message and exit
+  --toxbox    Convert the drive from Xbox to PC
+  --topc      Convert the drive from PC to Xbox
 ```
 
 ## Examples
@@ -52,7 +48,7 @@ optional arguments:
 #### Display current 'Boot Signature' and 'NT Disk Signature'
 
 ```
-xboxoneexternal.py -d \\.\PhysicalDrive5
+xboxoneexternal.py \\.\PhysicalDrive5
 
 NT Disk Signature:      0x12345678
 Boot Signature:         0x99cc
@@ -62,12 +58,11 @@ Boot Signature:         0x99cc
 #### Xbox One to Windows PC
 
 ```
-xboxoneexternal.py -bs -d \\.\PhysicalDrive5 
+xboxoneexternal.py \\.\PhysicalDrive5 --toxbox 
 
 NT Disk Signature:      0x12345678
 Boot Signature:         0x99cc
 Operation:              Xbox One->PC
-NEW Boot Signature:     0x55aa
 
 Writing new MBR ... done.
 ```
@@ -75,24 +70,11 @@ Writing new MBR ... done.
 #### Windows PC to Xbox One
 
 ```
-xboxoneexternal.py -i -bs -d \\.\PhysicalDrive5 
+xboxoneexternal.py \\.\PhysicalDrive5 --topc
 
 NT Disk Signature:      0x12345678
 Boot Signature:         0x55aa
 Operation:              PC->Xbox One
-NEW Boot Signature:     0x99cc
-
-Writing new MBR ... done.
-```
-
-#### Update 'NT Disk Signature' with the default value used by the Xbox One (sanity!)
-
-```
-xboxoneexternal.py -i -bs -ds -d \\.\PhysicalDrive5
-
-NT Disk Signature:      0x46555249
-Boot Signature:         0x55aa
-NEW NT Disk Signature:  0x12345678
 
 Writing new MBR ... done.
 ```
