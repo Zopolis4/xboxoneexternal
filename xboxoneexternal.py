@@ -45,7 +45,6 @@ def XboxToPC(drive):
    with open(drive, 'r+b') as disk:
        disk.seek(0)
        master_boot_record = disk.read(SECTOR_SIZE)
-       nt_disk_signature = master_boot_record[0x1b8:0x1bc]
        boot_signature = master_boot_record[0x1fe:0x200]
        if boot_signature == XBOX_ONE_BOOT_SIGNATURE:
            print('Operation: \t Xbox One -> PC')
@@ -55,7 +54,6 @@ def PCToXbox(drive):
    with open(args.drive, 'r+b') as disk:
        disk.seek(0)
        master_boot_record = disk.read(SECTOR_SIZE)
-       nt_disk_signature = master_boot_record[0x1b8:0x1bc]
        boot_signature = master_boot_record[0x1fe:0x200]
        if boot_signature == PC_BOOT_SIGNATURE:
            print('Operation: \t PC -> Xbox One')
