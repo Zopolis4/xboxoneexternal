@@ -51,7 +51,7 @@ def XboxToPC(drive):
            master_boot_record = (master_boot_record[:0x1b8] + PC_BOOT_SIGNATURE + master_boot_record[0x1bc:])
 
 def PCToXbox(drive):
-   with open(args.drive, 'r+b') as disk:
+   with open(drive, 'r+b') as disk:
        disk.seek(0)
        master_boot_record = disk.read(SECTOR_SIZE)
        boot_signature = master_boot_record[0x1fe:0x200]
